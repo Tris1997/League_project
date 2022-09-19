@@ -1,5 +1,7 @@
 import requests
-import os 
+import os
+import datetime
+from endpoint_functions import *
 # Tristan's
 #{"summonerID":"GtuLgsQ0rBzcKnjEagd6vZhT3YMvKAwW5Lwy1khpK9eUWYw",
 # "accountId":"zSpDaO6Abvqdya5zpt5CcVwsGhbDbFdjkL_h7e195wIHsA",
@@ -30,8 +32,24 @@ import os
 # /lol/summoner/v4/summoners/by-name/{summonerName}
 # /lol/match/v5/matches/{matchId}
 # /lol/match/v5/matches/by-puuid/{puuid}/ids
-payload = {'api_key': os.getenv('API_KEY')}
+if __name__ == "__main__":
+    payload = {'api_key': os.getenv('API_KEY')}
 
-na_url = requests.get('https://na1.api.riotgames.com/lol/status/v4/platform-data',params=payload)
-print(na_url.json())
+    player = summonerName("Dollheart")
+    print(player)
+
+    na_matches_list = requests.get('https://americas.api.riotgames.com/lol/match/v5/matches/by-puuid/{}/ids'.format(player["puuid"]), \
+        params=payload).json()
+
+    for match in na_matches_list:
+        na_url = matchID(match)
+        unix_timestamp = int(na_url["info"]["gameEndTimestamp"])
+
+        unix_second = int(unix_timestamp / 1000)
+
+        match_date = datetime.datetime.fromtimestamp(unix_second)
+        win_clause = na_url["info"]["participants"][0]["win"]
+        print(f"Match ID: {match}. Win: {win_clause}. Date: {match_date}")
+
+
 
