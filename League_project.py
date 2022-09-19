@@ -2,6 +2,8 @@ import requests
 import os
 import datetime
 from endpoint_functions import *
+import plotly.express as px
+import pandas as pd
 # Tristan's
 #{"summonerID":"GtuLgsQ0rBzcKnjEagd6vZhT3YMvKAwW5Lwy1khpK9eUWYw",
 # "accountId":"zSpDaO6Abvqdya5zpt5CcVwsGhbDbFdjkL_h7e195wIHsA",
@@ -33,7 +35,7 @@ from endpoint_functions import *
 # /lol/match/v5/matches/{matchId}
 # /lol/match/v5/matches/by-puuid/{puuid}/ids
 if __name__ == "__main__":
-    payload = {'api_key': os.getenv('API_KEY')}
+    payload = {'api_key': os.getenv('API_KEY'),'count': 40}
 
     player = summonerName("Dollheart")
     print(player)
@@ -41,15 +43,27 @@ if __name__ == "__main__":
     na_matches_list = requests.get('https://americas.api.riotgames.com/lol/match/v5/matches/by-puuid/{}/ids'.format(player["puuid"]), \
         params=payload).json()
 
+
+    matches_won = {}
     for match in na_matches_list:
         na_url = matchID(match)
         unix_timestamp = int(na_url["info"]["gameEndTimestamp"])
 
         unix_second = int(unix_timestamp / 1000)
 
-        match_date = datetime.datetime.fromtimestamp(unix_second)
+        match_date = datetime.datetime.fromtimestamp(unix_second).date()
         win_clause = na_url["info"]["participants"][0]["win"]
         print(f"Match ID: {match}. Win: {win_clause}. Date: {match_date}")
+        
+        print(matches_won.keys())
+        if match_date not in matches_won.keys() and win_clause == True:
+            matches_won[match_date] = 0
+            matches_won[match_date] += 1
+        elif win_clause == True:
+            matches_won[match_date] += 1
 
+    df = pd.DataFrame(dict(d=matches_won.keys(),e=matches_won.values()))
+    fig = px.bar(df, x='d', y='e')
+    fig.show()
 
-
+    

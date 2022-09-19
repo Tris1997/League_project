@@ -6,7 +6,6 @@ import requests
 
 payload = {'api_key': os.getenv('API_KEY')}
 
-
 def summonerID(id):
     encryptedSummonerId = id
     endpoint = 'https://na1.api.riotgames.com/lol/league/v4/entries/by-summoner/{}'.format(encryptedSummonerId)
