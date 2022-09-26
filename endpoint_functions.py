@@ -1,6 +1,7 @@
 import string
 import os
 import requests
+import json
 
 """Endpoint Functions"""
 
@@ -21,8 +22,35 @@ def summonerName(name):
 def matchID(id):
     match_id = id
     endpoint = 'https://americas.api.riotgames.com/lol/match/v5/matches/{}'.format(match_id)
-    json = requests.get(endpoint, params=payload).json()
-    return json
+    jsons = requests.get(endpoint, params=payload).json()
+
+    file_exists = os.path.exists('myfile.json')
+
+    if not file_exists:
+        to_list = [jsons]
+        json_object = json.dumps(to_list, indent=4)
+
+        with open("myfile.json", "a") as file:
+            
+            file.write(json_object)
+    else:
+        append_content = []
+
+        with open("myfile.json", "r") as file:
+            append_content = json.load(file)
+
+        for id_match in append_content:
+            if id == id_match['metadata']['matchId']:
+                return jsons
+
+        append_content.append(jsons)
+        print(len(append_content))
+        json_object = json.dumps(append_content, indent=4)
+
+        with open("myfile.json", "w") as file:
+            file.write(json_object)
+
+    return jsons
 
 # /lol/match/v5/matches/by-puuid/{puuid}/ids
 

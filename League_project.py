@@ -35,7 +35,7 @@ import pandas as pd
 # /lol/match/v5/matches/{matchId}
 # /lol/match/v5/matches/by-puuid/{puuid}/ids
 if __name__ == "__main__":
-    payload = {'api_key': os.getenv('API_KEY'),'count': 40}
+    payload = {'api_key': os.getenv('API_KEY'),'count': 40 }
 
     player = summonerName("Dollheart")
     print(player)
@@ -47,23 +47,50 @@ if __name__ == "__main__":
     matches_won = {}
     for match in na_matches_list:
         na_url = matchID(match)
+        print(na_url)
         unix_timestamp = int(na_url["info"]["gameEndTimestamp"])
 
         unix_second = int(unix_timestamp / 1000)
 
         match_date = datetime.datetime.fromtimestamp(unix_second).date()
         win_clause = na_url["info"]["participants"][0]["win"]
-        print(f"Match ID: {match}. Win: {win_clause}. Date: {match_date}")
         
-        print(matches_won.keys())
-        if match_date not in matches_won.keys() and win_clause == True:
-            matches_won[match_date] = 0
-            matches_won[match_date] += 1
-        elif win_clause == True:
-            matches_won[match_date] += 1
+        if match_date not in matches_won.keys() and win_clause:
+            matches_won[match_date] = {}
+            matches_won[match_date]["win"] = 0
 
-    df = pd.DataFrame(dict(d=matches_won.keys(),e=matches_won.values()))
-    fig = px.bar(df, x='d', y='e')
+            matches_won[match_date]["lose"] = 0
+
+            matches_won[match_date]["win"] += 1
+        elif win_clause:
+            matches_won[match_date]["win"] += 1
+        elif match_date not in matches_won.keys() and not win_clause:
+            matches_won[match_date] = {}
+            matches_won[match_date]["win"] = 0
+
+            matches_won[match_date]["lose"] = 0
+            matches_won[match_date]["lose"] += 1
+        else:
+            matches_won[match_date]["lose"] += 1
+
+    to_graph = {
+        "Date": [],
+        "Win":[],
+        "Lost":[]
+    }
+
+    for value in matches_won:
+        to_graph["Date"].append(value)
+        to_graph["Win"].append(matches_won[value]["win"])
+        to_graph["Lost"].append(matches_won[value]["lose"])
+    
+    df = pd.DataFrame(
+        to_graph
+    )
+    
+    print(df)
+
+    fig = px.bar(df,x=to_graph["Date"],y=[to_graph["Win"],to_graph["Lost"]])
     fig.show()
 
     
